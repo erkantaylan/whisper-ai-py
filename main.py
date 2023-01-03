@@ -1,15 +1,9 @@
-import whisper
 import sys
 import getopt
-import json
+from http.server import HTTPServer
 
-
-def convert(medila_file, output):
-    model = whisper.load_model('large')
-    result = model.transcribe(medila_file)
-    file = open(output, 'a')
-    file.write(json.dumps(result))
-    file.close()
+from whisper_helper import WhisperHelper
+import WhisperServer
 
 
 def main(argv):
@@ -24,11 +18,26 @@ def main(argv):
         else:
             print("error: " + argv)
             sys.exit()
-    convert(medila_file, output)
+    helper = WhisperHelper()
+    helper.save_to_file(medila_file, output)
+
+
+def start():
+    webServer = HTTPServer(("localhost", 8000), WhisperServer.WhisperServer)
+    print("Server started http://%s:%s" % ("localhost", 8000))
+
+    try:
+        webServer.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    webServer.server_close()
+    print("Server stopped.")
 
 
 if __name__ == '__main__':
     # print('argv:')
     # print(sys.argv)
-    main(sys.argv[1:])
+    # main(sys.argv[1:])
     # convert()
+    start()
